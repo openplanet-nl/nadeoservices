@@ -1,0 +1,8 @@
+[meta]
+name = "Nadeo Services"
+author = "Miss"
+category = "Developer"
+essential = true
+
+[script]
+exports = [ "Export.as" ]
