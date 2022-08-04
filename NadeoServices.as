@@ -118,13 +118,14 @@ namespace NadeoServices
 	string GetDisplayNameAsync(const string &in accountId)
 	{
 		auto userMgr = GetApp().UserManagerScript;
+		auto userId = userMgr.Users[0].Id;
 
 		string ret = userMgr.FindDisplayName(accountId);
 		if (ret == "") {
 			MwFastBuffer<wstring> accountIds;
 			accountIds.Add(accountId);
 
-			auto req = userMgr.RetrieveDisplayName(0, accountIds);
+			auto req = userMgr.RetrieveDisplayName(userId, accountIds);
 			while (req.IsProcessing) {
 				yield();
 			}
@@ -139,6 +140,7 @@ namespace NadeoServices
 	dictionary GetDisplayNamesAsync(const array<string> &in accountIds)
 	{
 		auto userMgr = GetApp().UserManagerScript;
+		auto userId = userMgr.Users[0].Id;
 
 		dictionary ret;
 
@@ -159,7 +161,7 @@ namespace NadeoServices
 				ids.Add(missing[i]);
 			}
 
-			auto req = userMgr.RetrieveDisplayName(0, ids);
+			auto req = userMgr.RetrieveDisplayName(userId, ids);
 			while (req.IsProcessing) {
 				yield();
 			}
