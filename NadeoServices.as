@@ -156,11 +156,7 @@ namespace NadeoServices
 			}
 		}
 
-		if (missing.Length == 0) {
-			return ret;
-		}
-
-		while (true) {
+		while (missing.Length > 0) {
 			MwFastBuffer<wstring> ids;
 			uint idsToAdd = Math::Min(missing.Length, idLimit);
 			for (uint i = 0; i < idsToAdd; i++) {
@@ -179,11 +175,7 @@ namespace NadeoServices
 				ret.Set(accountId, displayName);
 			}
 
-			if (missing.Length <= idLimit) {
-				return ret;
-			}
-
-			missing.RemoveRange(0, idLimit);
+			missing.RemoveRange(0, idsToAdd);
 		}
 
 		return ret;
