@@ -142,6 +142,7 @@ namespace NadeoServices
 		auto userMgr = GetApp().UserManagerScript;
 		auto userId = userMgr.Users[0].Id;
 
+		uint idLimit = 209;
 		dictionary ret;
 
 		array<string> missing;
@@ -155,9 +156,10 @@ namespace NadeoServices
 			}
 		}
 
-		if (missing.Length > 0) {
+		while (missing.Length > 0) {
 			MwFastBuffer<wstring> ids;
-			for (uint i = 0; i < missing.Length; i++) {
+			uint idsToAdd = Math::Min(missing.Length, idLimit);
+			for (uint i = 0; i < idsToAdd; i++) {
 				ids.Add(missing[i]);
 			}
 
@@ -167,11 +169,13 @@ namespace NadeoServices
 			}
 			userMgr.TaskResult_Release(req.Id);
 
-			for (uint i = 0; i < missing.Length; i++) {
+			for (uint i = 0; i < idsToAdd; i++) {
 				string accountId = missing[i];
 				string displayName = userMgr.FindDisplayName(accountId);
 				ret.Set(accountId, displayName);
 			}
+
+			missing.RemoveRange(0, idsToAdd);
 		}
 
 		return ret;
