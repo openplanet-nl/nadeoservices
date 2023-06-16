@@ -1,4 +1,4 @@
-class AccessToken
+class AccessToken : IToken
 {
 	string m_audience;
 	string m_token;
@@ -12,10 +12,8 @@ class AccessToken
 		m_audience = audience;
 	}
 
-	bool IsAuthenticated()
-	{
-		return m_token != "";
-	}
+	string GetToken() { return m_token; }
+	bool IsAuthenticated() { return m_token != ""; }
 
 	void UpdateAsync()
 	{
@@ -65,10 +63,5 @@ class AccessToken
 			m_expirationTime = Time::Now + m_retryTimer * 1000;
 			m_retryTimer *= 2;
 		}
-	}
-
-	void Refresh()
-	{
-		m_refreshRequested = true;
 	}
 }

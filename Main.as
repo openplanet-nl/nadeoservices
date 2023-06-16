@@ -10,8 +10,12 @@ void Main()
 			continue;
 		}
 
-		for (uint i = 0; i < NadeoServices::Tokens.Length; i++) {
-			NadeoServices::Tokens[i].UpdateAsync();
+		auto audiences = NadeoServices::Tokens.GetKeys();
+		for (uint i = 0; i < audiences.Length; i++) {
+			IToken@ token;
+			if (NadeoServices::Tokens.Get(audiences[i], @token)) {
+				token.UpdateAsync();
+			}
 		}
 
 		yield();

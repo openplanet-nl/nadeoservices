@@ -1,22 +1,24 @@
 namespace NadeoServices
 {
-	string BaseURL() { return "https://live-services.trackmania.nadeo.live"; }
+	string BaseURL()
+	{
+		warn("DEPRECATED: For the Live API, you should use NadeoServices::BaseURLLive() instead of BaseURL().");
+		return BaseURLLive();
+	}
+
 	string BaseURLCore() { return "https://prod.trackmania.core.nadeo.online"; }
+	string BaseURLLive() { return "https://live-services.trackmania.nadeo.live"; }
 	string BaseURLClub() { return "https://club.trackmania.nadeo.club"; }
 	string BaseURLCompetition() { return "https://competition.trackmania.nadeo.club"; }
 	string BaseURLMatchmaking() { return "https://matchmaking.trackmania.nadeo.club"; }
 
-	array<AccessToken@> Tokens;
+	dictionary Tokens;
 
-	AccessToken@ GetToken(const string &in audience)
+	IToken@ GetToken(const string &in audience)
 	{
-		for (uint i = 0; i < Tokens.Length; i++) {
-			auto token = Tokens[i];
-			if (token.m_audience == audience) {
-				return token;
-			}
-		}
-		return null;
+		IToken@ token = null;
+		Tokens.Get(audience, @token);
+		return token;
 	}
 
 	void AddAudience(const string &in audience)
@@ -24,18 +26,34 @@ namespace NadeoServices
 		if (GetToken(audience) !is null) {
 			return;
 		}
-		Tokens.InsertLast(AccessToken(audience));
+
+		IToken@ newToken = null;
+
+		if (audience == "NadeoServices") {
+			@newToken = CoreToken();
+		} else if (audience == "NadeoLiveServices" || audience == "NadeoClubServices") {
+			@newToken = AccessToken(audience);
+		}
+
+		if (newToken is null) {
+			throw("Unknown token audience. Use \"NadeoServices\", \"NadeoLiveServices\", or \"NadeoClubServices\".");
+		}
+
+		Tokens.Set(audience, @newToken);
 	}
 
 	bool IsAuthenticated(const string &in audience)
 	{
-		for (uint i = 0; i < Tokens.Length; i++) {
-			auto token = Tokens[i];
-			if (token.m_audience == audience) {
-				return token.IsAuthenticated();
-			}
+		IToken@ token;
+		if (Tokens.Get(audience, @token)) {
+			return token.IsAuthenticated();
 		}
 		return false;
+	}
+
+	string GetAccountID()
+	{
+		return Internal::NadeoServices::GetAccountID();
 	}
 
 	Net::HttpRequest@ Request(const string &in audience)
@@ -52,7 +70,7 @@ namespace NadeoServices
 		}
 
 		auto ret = Net::HttpRequest();
-		ret.Headers["Authorization"] = "nadeo_v1 t=" + token.m_token;
+		ret.Headers["Authorization"] = "nadeo_v1 t=" + token.GetToken();
 		return ret;
 	}
 

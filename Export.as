@@ -10,7 +10,7 @@
  *   }
  *
  *   // Build the API URL
- *   string url = NadeoServices::BaseURL() + "/api/token/campaign/month?offset=0&length=27";
+ *   string url = NadeoServices::BaseURLLive() + "/api/token/campaign/month?offset=0&length=27";
  *
  *   // Create a request to the live services
  *   auto req = NadeoServices::Get("NadeoLiveServices", url);
@@ -32,8 +32,17 @@ namespace NadeoServices
 	// Checks if the given audience is authenticated.
 	import bool IsAuthenticated(const string &in audience) from "NadeoServices";
 
+	// Gets the currently authenticated account ID.
+	import string GetAccountID() from "NadeoServices";
+
 	// Returns the base URL for the live API. (Requires the "NadeoLiveServices" audience)
+	// DEPRECATED: Use NadeoServices::BaseURLLive() instead.
 	import string BaseURL() from "NadeoServices";
+
+	// Returns the base URL for the core API. (Requires the "NadeoServices" audience)
+	import string BaseURLCore() from "NadeoServices";
+	// Returns the base URL for the live API. (Requires the "NadeoLiveServices" audience)
+	import string BaseURLLive() from "NadeoServices";
 	// Returns the base URL for the club API. (Requires the "NadeoClubServices" audience)
 	import string BaseURLClub() from "NadeoServices";
 	// Returns the base URL for the competition API. (Requires the "NadeoClubServices" audience)
