@@ -1,6 +1,7 @@
 namespace NadeoServices
 {
 	string BaseURL() { return "https://live-services.trackmania.nadeo.live"; }
+	string BaseURLCore() { return "https://prod.trackmania.core.nadeo.online"; }
 	string BaseURLClub() { return "https://club.trackmania.nadeo.club"; }
 	string BaseURLCompetition() { return "https://competition.trackmania.nadeo.club"; }
 	string BaseURLMatchmaking() { return "https://matchmaking.trackmania.nadeo.club"; }
