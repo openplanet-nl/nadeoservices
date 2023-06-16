@@ -142,7 +142,6 @@ namespace NadeoServices
 		auto userMgr = GetApp().UserManagerScript;
 		auto userId = userMgr.Users[0].Id;
 
-		uint idLimit = 209;
 		dictionary ret;
 
 		array<string> missing;
@@ -158,7 +157,7 @@ namespace NadeoServices
 
 		while (missing.Length > 0) {
 			MwFastBuffer<wstring> ids;
-			uint idsToAdd = Math::Min(missing.Length, idLimit);
+			uint idsToAdd = Math::Min(missing.Length, 209);
 			for (uint i = 0; i < idsToAdd; i++) {
 				ids.Add(missing[i]);
 			}
