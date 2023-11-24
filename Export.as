@@ -39,14 +39,18 @@ namespace NadeoServices
 	import string BaseURLCore() from "NadeoServices";
 	// Returns the base URL for the live API. (Requires the "NadeoLiveServices" audience)
 	import string BaseURLLive() from "NadeoServices";
-	// Returns the base URL for the club API. (Requires the "NadeoClubServices" audience)
-	import string BaseURLClub() from "NadeoServices";
-	// Returns the base URL for the competition API. (Requires the "NadeoClubServices" audience)
-	import string BaseURLCompetition() from "NadeoServices";
-	// Returns the base URL for the matchmaking API. (Requires the "NadeoClubServices" audience)
-	import string BaseURLMatchmaking() from "NadeoServices";
 	// Returns the base URL for the meet API. (Requires "NadeoClubServices" audience)
 	import string BaseURLMeet() from "NadeoServices";
+
+	// Returns the base URL for the club API. (Requires the "NadeoClubServices" audience)
+	// DEPRECATED: Use NadeoServices::BaseURLMeet() instead.
+	import string BaseURLClub() from "NadeoServices";
+	// Returns the base URL for the competition API. (Requires the "NadeoClubServices" audience)
+	// DEPRECATED: Use NadeoServices::BaseURLMeet() instead.
+	import string BaseURLCompetition() from "NadeoServices";
+	// Returns the base URL for the matchmaking API. (Requires the "NadeoClubServices" audience)
+	// DEPRECATED: Use NadeoServices::BaseURLMeet() instead.
+	import string BaseURLMatchmaking() from "NadeoServices";
 
 	// Create an HTTP request object with the correct authentication header for the audience already
 	// filled in. Throws an exception if the audience is not authenticated yet.
