@@ -35,10 +35,6 @@ namespace NadeoServices
 	// Gets the currently authenticated account ID.
 	import string GetAccountID() from "NadeoServices";
 
-	// Returns the base URL for the live API. (Requires the "NadeoLiveServices" audience)
-	// DEPRECATED: Use NadeoServices::BaseURLLive() instead.
-	import string BaseURL() from "NadeoServices";
-
 	// Returns the base URL for the core API. (Requires the "NadeoServices" audience)
 	import string BaseURLCore() from "NadeoServices";
 	// Returns the base URL for the live API. (Requires the "NadeoLiveServices" audience)

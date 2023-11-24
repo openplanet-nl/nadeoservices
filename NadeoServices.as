@@ -1,11 +1,5 @@
 namespace NadeoServices
 {
-	string BaseURL()
-	{
-		warn("DEPRECATED: For the Live API, you should use NadeoServices::BaseURLLive() instead of BaseURL().");
-		return BaseURLLive();
-	}
-
 	string BaseURLClub() {
 		warn("DEPRECATED: For the Club API, you should use NadeoServices::BaseURLMeet() instead of BaseURLClub().");
 		return "https://meet.trackmania.nadeo.club";
