@@ -49,6 +49,8 @@ namespace NadeoServices
 	import string BaseURLCompetition() from "NadeoServices";
 	// Returns the base URL for the matchmaking API. (Requires the "NadeoClubServices" audience)
 	import string BaseURLMatchmaking() from "NadeoServices";
+	// Returns the base URL for the meet API. (Requires "NadeoClubServices" audience)
+	import string BaseURLMeet() from "NadeoServices";
 
 	// Create an HTTP request object with the correct authentication header for the audience already
 	// filled in. Throws an exception if the audience is not authenticated yet.

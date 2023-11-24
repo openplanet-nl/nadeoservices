@@ -6,11 +6,22 @@ namespace NadeoServices
 		return BaseURLLive();
 	}
 
-	string BaseURLCore() { return "https://prod.trackmania.core.nadeo.online"; }
+	string BaseURLClub() {
+		warn("DEPRECATED: For the Club API, you should use NadeoServices::BaseURLMeet() instead of BaseURLClub().");
+		return "https://meet.trackmania.nadeo.club";
+	}
+	string BaseURLCompetition() {
+		warn("DEPRECATED: For the Competition API, you should use NadeoServices::BaseURLMeet() instead of BaseURLCompetition().");
+		return "https://meet.trackmania.nadeo.club";
+	}
+	string BaseURLMatchmaking() {
+		warn("DEPRECATED: For the Matchmaking API, you should use NadeoServices::BaseURLMeet() instead of BaseURLMatchmaking().");
+		return "https://meet.trackmania.nadeo.club";
+	}
+
+	string BaseURLCore() {return "https://prod.trackmania.core.nadeo.online"; }
 	string BaseURLLive() { return "https://live-services.trackmania.nadeo.live"; }
-	string BaseURLClub() { return "https://club.trackmania.nadeo.club"; }
-	string BaseURLCompetition() { return "https://competition.trackmania.nadeo.club"; }
-	string BaseURLMatchmaking() { return "https://matchmaking.trackmania.nadeo.club"; }
+	string BaseURLMeet() { return "https://meet.trackmania.nadeo.club"; }
 
 	dictionary Tokens;
 
