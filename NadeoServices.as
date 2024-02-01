@@ -13,7 +13,7 @@ namespace NadeoServices
 		return "https://meet.trackmania.nadeo.club";
 	}
 
-	string BaseURLCore() {return "https://prod.trackmania.core.nadeo.online"; }
+	string BaseURLCore() { return "https://prod.trackmania.core.nadeo.online"; }
 	string BaseURLLive() { return "https://live-services.trackmania.nadeo.live"; }
 	string BaseURLMeet() { return "https://meet.trackmania.nadeo.club"; }
 
