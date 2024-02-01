@@ -1,18 +1,5 @@
 namespace NadeoServices
 {
-	string BaseURLClub() {
-		warn("DEPRECATED: For the Club API, you should use NadeoServices::BaseURLMeet() instead of BaseURLClub().");
-		return "https://meet.trackmania.nadeo.club";
-	}
-	string BaseURLCompetition() {
-		warn("DEPRECATED: For the Competition API, you should use NadeoServices::BaseURLMeet() instead of BaseURLCompetition().");
-		return "https://meet.trackmania.nadeo.club";
-	}
-	string BaseURLMatchmaking() {
-		warn("DEPRECATED: For the Matchmaking API, you should use NadeoServices::BaseURLMeet() instead of BaseURLMatchmaking().");
-		return "https://meet.trackmania.nadeo.club";
-	}
-
 	string BaseURLCore() { return "https://prod.trackmania.core.nadeo.online"; }
 	string BaseURLLive() { return "https://live-services.trackmania.nadeo.live"; }
 	string BaseURLMeet() { return "https://meet.trackmania.nadeo.club"; }
@@ -21,6 +8,12 @@ namespace NadeoServices
 
 	IToken@ GetToken(const string &in audience)
 	{
+		//NOTE: On 2024-01-31, Nadeo announced that NadeoClubServices would no longer be used.
+		//      NadeoLiveServices has now replaced it.
+		if (audience == "NadeoClubServices") {
+			return GetToken("NadeoLiveServices");
+		}
+
 		IToken@ token = null;
 		Tokens.Get(audience, @token);
 		return token;
@@ -36,24 +29,27 @@ namespace NadeoServices
 
 		if (audience == "NadeoServices") {
 			@newToken = CoreToken();
-		} else if (audience == "NadeoLiveServices" || audience == "NadeoClubServices") {
+		} else if (audience == "NadeoLiveServices") {
 			@newToken = AccessToken(audience);
+		} else if (audience == "NadeoClubServices") {
+			warn("DEPRECATED: The Meet API will soon no longer accept \"NadeoClubServices\" as an audience. Please use \"NadeoLiveServices\" instead.");
+			@newToken = AccessToken("NadeoLiveServices");
 		}
 
 		if (newToken is null) {
-			throw("Unknown token audience. Use \"NadeoServices\", \"NadeoLiveServices\", or \"NadeoClubServices\".");
+			throw("Unknown token audience. Use \"NadeoServices\" or \"NadeoLiveServices\".");
 		}
 
-		Tokens.Set(audience, @newToken);
+		Tokens.Set(newToken.GetAudience(), @newToken);
 	}
 
 	bool IsAuthenticated(const string &in audience)
 	{
-		IToken@ token;
-		if (Tokens.Get(audience, @token)) {
-			return token.IsAuthenticated();
+		IToken@ token = GetToken(audience);
+		if (token is null) {
+			return false;
 		}
-		return false;
+		return token.IsAuthenticated();
 	}
 
 	string GetAccountID()

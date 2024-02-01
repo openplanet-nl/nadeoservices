@@ -12,11 +12,16 @@ class AccessToken : IToken
 		m_audience = audience;
 	}
 
+	string GetAudience() { return m_audience; }
 	string GetToken() { return m_token; }
 	bool IsAuthenticated() { return m_token != ""; }
 
 	void UpdateAsync()
 	{
+		//TODO: We may no longer need to call `Authentication_GetToken` ourselves very soon, as per the
+		//      2024-01-31 changes of the `NadeoClubServices` audience, as `Authentication_Token` can
+		//      only consist of a `NadeoLiveServices` token anyway.
+
 		if (Time::Now > m_expirationTime) {
 			m_refreshRequested = true;
 		}
