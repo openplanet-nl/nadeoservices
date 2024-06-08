@@ -96,4 +96,12 @@ namespace NadeoServices
 	// yieldable function. If you want to fetch only a single display name you can also use
 	// `GetDisplayNameAsync`.
 	import dictionary GetDisplayNamesAsync(const array<string> &in accountIds) from "NadeoServices";
+
+	// Converts a login to an account ID. For example:
+	// `c5jutptORLinoaIUmVWscA` => `7398eeb6-9b4e-44b8-a7a1-a2149955ac70`
+	import string LoginToAccountId(const string &in login) from "NadeoServices";
+
+	// Converts an account ID to a login. For example:
+	// `7398eeb6-9b4e-44b8-a7a1-a2149955ac70` => `c5jutptORLinoaIUmVWscA`
+	import string AccountIdToLogin(const string &in accountId) from "NadeoServices";
 }

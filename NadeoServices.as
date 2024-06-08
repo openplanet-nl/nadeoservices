@@ -199,4 +199,20 @@ namespace NadeoServices
 
 		return ret;
 	}
+
+	string LoginToAccountId(const string &in login)
+	{
+		MemoryBuffer mb;
+		mb.WriteFromBase64(login, true);
+		mb.Seek(0);
+		return mb.ReadToHex(4) + "-" + mb.ReadToHex(2) + "-" + mb.ReadToHex(2) + "-" + mb.ReadToHex(2) + "-" + mb.ReadToHex(6);
+	}
+
+	string AccountIdToLogin(const string &in accountId)
+	{
+		MemoryBuffer mb;
+		mb.WriteFromHex(accountId.Replace("-", ""));
+		mb.Seek(0);
+		return mb.ReadToBase64(mb.GetSize(), true);
+	}
 }
