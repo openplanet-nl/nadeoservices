@@ -1,5 +1,16 @@
+#if SIG_DEVELOPER
+UI::Font@ g_fontMono;
+#endif
+
 void Main()
 {
+#if SIG_DEVELOPER
+	NadeoServices::AddAudience("NadeoServices");
+	NadeoServices::AddAudience("NadeoLiveServices");
+
+	@g_fontMono = UI::LoadFont("DroidSansMono.ttf", 16);
+#endif
+
 	auto app = cast<CGameManiaPlanet>(GetApp());
 	auto api = app.ManiaPlanetScriptAPI;
 
@@ -21,3 +32,17 @@ void Main()
 		yield();
 	}
 }
+
+#if SIG_DEVELOPER
+void RenderMenu()
+{
+	if (UI::MenuItem("\\$f93" + Icons::Ticket + "\\$z Nadeo API Console", "", ApiConsole::Visible)) {
+		ApiConsole::Visible = !ApiConsole::Visible;
+	}
+}
+
+void RenderInterface()
+{
+	ApiConsole::Render();
+}
+#endif
