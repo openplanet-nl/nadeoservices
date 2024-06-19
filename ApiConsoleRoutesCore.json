@@ -1,0 +1,27 @@
+[
+	{
+		"name": "Routes list",
+		"base": "core",
+		"method": "get",
+		"path": "/api/routes"
+	},
+	{
+		"name": "Map Records v2",
+		"base": "core",
+		"method": "get",
+		"path": "/v2/mapRecords/",
+		"query": {
+			"accountIdList": "7398eeb6-9b4e-44b8-a7a1-a2149955ac70",
+			"mapId": "d2b8a048-209d-4cfa-b5a4-bc3e3cab3566"
+		}
+	},
+	{
+		"name": "Maps List",
+		"base": "core",
+		"method": "get",
+		"path": "/maps/",
+		"query": {
+			"mapUidList": "yQ4ktCXu3SAxyRx9gar8hj7kVBb"
+		}
+	}
+]

@@ -1,12 +1,7 @@
 #if SIG_DEVELOPER
 namespace ApiConsole
 {
-	enum BaseUrl
-	{
-		Core,
-		Live,
-		Meet,
-	}
+	UI::Font@ FontMono;
 
 	array<string> ContentTypes = {
 		"application/json",
@@ -21,13 +16,15 @@ namespace ApiConsole
 	[Setting hidden]
 	bool Setting_ApiConsole_SelectableRawResponse = false;
 
-	BaseUrl BaseUrlType = BaseUrl::Core;
-	Net::HttpMethod RequestMethod = Net::HttpMethod::Get;
-	string RequestPath = "/api/routes";
-	KeyedList RequestQuery;
-	KeyedList RequestHeaders;
-	string RequestContentType = "application/json";
-	string RequestBody = "{}";
+	array<RequestData@> RoutesCore;
+	array<RequestData@> RoutesLive;
+	array<RequestData@> RoutesMeet;
+
+	array<RequestData@> RoutesSaved;
+	bool OpenSaveRoutePopup = false;
+	string SaveRouteName = "";
+
+	RequestData Request;
 
 	bool Waiting = false;
 
@@ -39,7 +36,7 @@ namespace ApiConsole
 
 	string GetBaseUrl()
 	{
-		switch (BaseUrlType) {
+		switch (Request.m_base) {
 			case BaseUrl::Core: return NadeoServices::BaseURLCore();
 			case BaseUrl::Live: return NadeoServices::BaseURLLive();
 			case BaseUrl::Meet: return NadeoServices::BaseURLMeet();
@@ -50,13 +47,32 @@ namespace ApiConsole
 
 	string GetAudience()
 	{
-		switch (BaseUrlType) {
+		switch (Request.m_base) {
 			case BaseUrl::Core: return "NadeoServices";
 			case BaseUrl::Live: return "NadeoLiveServices";
 			case BaseUrl::Meet: return "NadeoLiveServices";
 		}
 		throw("Invalid base URL type");
 		return "";
+	}
+
+	void Initialize()
+	{
+		@FontMono = UI::LoadFont("DroidSansMono.ttf", 16);
+
+		RoutesCore = LoadRequestDataList(Json::FromFile("ApiConsoleRoutesCore.json"));
+		RoutesLive = LoadRequestDataList(Json::FromFile("ApiConsoleRoutesLive.json"));
+		RoutesMeet = LoadRequestDataList(Json::FromFile("ApiConsoleRoutesMeet.json"));
+
+		auto jsSavedRoutes = Json::FromFile(IO::FromStorageFolder("SavedRoutes.json"));
+		if (jsSavedRoutes.GetType() == Json::Type::Array) {
+			RoutesSaved = LoadRequestDataList(jsSavedRoutes);
+		}
+	}
+
+	void WriteSavedRoutes()
+	{
+		SaveRequestDataList(RoutesSaved, IO::FromStorageFolder("SavedRoutes.json"));
 	}
 
 	void Render()
@@ -77,6 +93,8 @@ namespace ApiConsole
 				RenderResponse();
 			}
 			UI::Columns(1);
+
+			RenderSavedRoutePopup();
 		}
 		UI::End();
 	}
@@ -95,17 +113,17 @@ namespace ApiConsole
 			}
 
 			if (UI::BeginMenu("Routes")) {
-				if (UI::BeginMenu("Core")) {
-					//TODO
-					UI::EndMenu();
+				if (UI::MenuItem("Clear current request")) {
+					Request.Clear();
 				}
-				if (UI::BeginMenu("Live")) {
-					//TODO
-					UI::EndMenu();
-				}
-				if (UI::BeginMenu("Meet")) {
-					//TODO
-					UI::EndMenu();
+				UI::Separator();
+				RenderMenuRoutes("Core", RoutesCore);
+				RenderMenuRoutes("Live", RoutesLive);
+				RenderMenuRoutes("Meet", RoutesMeet);
+				UI::Separator();
+				RenderMenuSavedRoutes();
+				if (UI::MenuItem(Icons::PlusCircle + " Save current request")) {
+					OpenSaveRoutePopup = true;
 				}
 				UI::EndMenu();
 			}
@@ -125,35 +143,88 @@ namespace ApiConsole
 		}
 	}
 
+	void RenderMenuRoutes(const string &in name, const array<RequestData@> &in routes)
+	{
+		if (UI::BeginMenu(name, routes.Length > 0)) {
+			for (uint i = 0; i < routes.Length; i++) {
+				auto route = routes[i];
+
+				string name = route.m_name;
+				if (name.Length == 0) {
+					name = route.m_path;
+				}
+
+				if (UI::MenuItem(name + "##route" + i)) {
+					Request = route;
+				}
+			}
+			UI::EndMenu();
+		}
+	}
+
+	void RenderMenuSavedRoutes()
+	{
+		if (UI::BeginMenu(Icons::Star + " Saved routes", RoutesSaved.Length > 0)) {
+			for (uint i = 0; i < RoutesSaved.Length; i++) {
+				auto route = RoutesSaved[i];
+
+				string name = route.m_name;
+				if (name.Length == 0) {
+					name = route.m_path;
+				}
+
+				if (UI::BeginMenu(name + "##route" + i)) {
+					if (UI::MenuItem("\\$f93" + Icons::FolderOpen + "\\$z Load route")) {
+						Request = route;
+					}
+					UI::Separator();
+					if (UI::MenuItem(Icons::FloppyO + " Overwrite with current")) {
+						string name = route.m_name;
+						route = Request;
+						route.m_name = name;
+						WriteSavedRoutes();
+					}
+					if (UI::MenuItem(Icons::MinusCircle + " Delete route")) {
+						RoutesSaved.RemoveAt(i);
+						WriteSavedRoutes();
+					}
+					UI::EndMenu();
+				}
+			}
+			UI::EndMenu();
+		}
+	}
+
 	void RenderRequestBar()
 	{
 		UI::BeginDisabled(Waiting);
 		UI::SetNextItemWidth(100);
-		if (UI::BeginCombo("##BaseURLType", tostring(BaseUrlType))) {
+		if (UI::BeginCombo("##BaseURLType", tostring(Request.m_base))) {
 			for (int i = 0; i < 3; i++) {
-				if (UI::Selectable(tostring(BaseUrl(i)), BaseUrlType == BaseUrl(i))) {
-					BaseUrlType = BaseUrl(i);
+				if (UI::Selectable(tostring(BaseUrl(i)), Request.m_base == BaseUrl(i))) {
+					Request.m_base = BaseUrl(i);
 				}
 			}
 			UI::EndCombo();
 		}
 		UI::SameLine();
 		UI::SetNextItemWidth(100);
-		if (UI::BeginCombo("##RequestMethod", tostring(RequestMethod).ToUpper())) {
+		if (UI::BeginCombo("##RequestMethod", tostring(Request.m_method).ToUpper())) {
 			for (int i = 0; i < 6; i++) {
-				if (UI::Selectable(tostring(Net::HttpMethod(i)).ToUpper(), RequestMethod == Net::HttpMethod(i))) {
-					RequestMethod = Net::HttpMethod(i);
+				if (UI::Selectable(tostring(Net::HttpMethod(i)).ToUpper(), Request.m_method == Net::HttpMethod(i))) {
+					Request.m_method = Net::HttpMethod(i);
 				}
 			}
 			UI::EndCombo();
 		}
 		UI::SameLine();
+		UI::PushFont(FontMono);
 		UI::TextDisabled(GetBaseUrl());
 		UI::SameLine();
 		UI::SetNextItemWidth(UI::GetContentRegionAvail().x - 60);
-		UI::SameLine();
 		bool pressedEnter = false;
-		RequestPath = UI::InputText("##PathInput", RequestPath, pressedEnter, UI::InputTextFlags::EnterReturnsTrue);
+		Request.m_path = UI::InputText("##PathInput", Request.m_path, pressedEnter, UI::InputTextFlags::EnterReturnsTrue);
+		UI::PopFont();
 		UI::SameLine();
 		if (UI::ButtonColored(Icons::ArrowRight, 0.05f, 0.6f, 0.6f, vec2(UI::GetContentRegionAvail().x, 0)) || pressedEnter) {
 			startnew(StartRequestAsync);
@@ -166,26 +237,26 @@ namespace ApiConsole
 		UI::BeginTabBar("RequestTabs");
 
 		if (UI::BeginTabItem(Icons::Link + " Request query")) {
-			RequestQuery.Render();
+			Request.m_query.Render();
 			UI::EndTabItem();
 		}
 
 		if (UI::BeginTabItem(Icons::Kenney::List + " Request headers")) {
-			RequestHeaders.Render();
+			Request.m_headers.Render();
 			UI::EndTabItem();
 		}
 
-		if (RequestMethodAcceptsData(RequestMethod) && UI::BeginTabItem(Icons::Code + " Request body")) {
-			if (UI::BeginCombo("Content type", RequestContentType)) {
+		if (RequestMethodAcceptsData(Request.m_method) && UI::BeginTabItem(Icons::Code + " Request body")) {
+			if (UI::BeginCombo("Content type", Request.m_contentType)) {
 				for (uint i = 0; i < ContentTypes.Length; i++) {
 					string contentType = ContentTypes[i];
-					if (UI::Selectable(contentType, RequestContentType == contentType)) {
-						RequestContentType = contentType;
+					if (UI::Selectable(contentType, Request.m_contentType == contentType)) {
+						Request.m_contentType = contentType;
 					}
 				}
 				UI::EndCombo();
 			}
-			RequestBody = UI::InputTextMultiline("##RequestBody", RequestBody, UI::GetContentRegionAvail());
+			Request.m_body = UI::InputTextMultiline("##RequestBody", Request.m_body, UI::GetContentRegionAvail());
 			UI::EndTabItem();
 		}
 
@@ -199,7 +270,7 @@ namespace ApiConsole
 		if (UI::BeginTabItem(Icons::Kenney::List + " Response headers")) {
 			if (UI::BeginChild("Container")) {
 				UI::Text("Response code \\$f93" + ResponseCode);
-				UI::PushFont(g_fontMono);
+				UI::PushFont(FontMono);
 				auto keys = ResponseHeaders.GetKeys();
 				for (uint i = 0; i < keys.Length; i++) {
 					string key = keys[i];
@@ -214,14 +285,14 @@ namespace ApiConsole
 		}
 
 		if (ResponsePretty.Length > 0 && UI::BeginTabItem(Icons::FileTextO + " Pretty response")) {
-			UI::PushFont(g_fontMono);
+			UI::PushFont(FontMono);
 			UI::InputTextMultiline("##ResponsePretty", ResponsePretty, UI::GetContentRegionAvail(), UI::InputTextFlags::ReadOnly);
 			UI::PopFont();
 			UI::EndTabItem();
 		}
 
 		if (UI::BeginTabItem(Icons::FileO + " Raw response")) {
-			UI::PushFont(g_fontMono);
+			UI::PushFont(FontMono);
 			if (Setting_ApiConsole_SelectableRawResponse) {
 				UI::InputTextMultiline("##ResponseRaw", ResponseRaw, UI::GetContentRegionAvail(), UI::InputTextFlags::ReadOnly);
 			} else {
@@ -235,6 +306,39 @@ namespace ApiConsole
 		}
 
 		UI::EndTabBar();
+	}
+
+	void RenderSavedRoutePopup()
+	{
+		if (OpenSaveRoutePopup) {
+			OpenSaveRoutePopup = false;
+			SaveRouteName = "";
+			UI::OpenPopup("Save current request");
+		}
+
+		UI::SetNextWindowSize(0, 0);
+		if (UI::BeginPopupModal("Save current request", UI::WindowFlags::NoSavedSettings | UI::WindowFlags::NoResize)) {
+			bool pressedEnter = false;
+			UI::Text("Please enter a name for this route:");
+			if (UI::IsWindowAppearing()) {
+				UI::SetKeyboardFocusHere();
+			}
+			UI::SetNextItemWidth(250);
+			SaveRouteName = UI::InputText("##SaveRouteName", SaveRouteName, pressedEnter, UI::InputTextFlags::EnterReturnsTrue);
+			if (UI::ButtonColored(Icons::FloppyO + " Save", 0.4f) || pressedEnter) {
+				RequestData@ newRequest = RequestData();
+				newRequest = Request;
+				newRequest.m_name = SaveRouteName;
+				RoutesSaved.InsertLast(newRequest);
+				WriteSavedRoutes();
+				UI::CloseCurrentPopup();
+			}
+			UI::SameLine();
+			if (UI::Button("Cancel")) {
+				UI::CloseCurrentPopup();
+			}
+			UI::EndPopup();
+		}
 	}
 
 	bool RequestMethodAcceptsData(Net::HttpMethod method)
@@ -255,27 +359,27 @@ namespace ApiConsole
 			return;
 		}
 
-		if (!RequestPath.StartsWith("/")) {
+		if (!Request.m_path.StartsWith("/")) {
 			Error = "Request path should start with a forward slash (/).";
 			return;
 		}
 
 		auto req = NadeoServices::Request(GetAudience());
-		req.Method = RequestMethod;
+		req.Method = Request.m_method;
 
-		for (uint i = 0; i < RequestHeaders.Length; i++) {
-			auto item = RequestHeaders[i];
+		for (uint i = 0; i < Request.m_headers.Length; i++) {
+			auto item = Request.m_headers[i];
 			req.Headers.Set(item.m_key, item.m_value);
 		}
 
-		req.Headers.Set("Content-Type", RequestContentType);
-		if (RequestMethodAcceptsData(RequestMethod)) {
-			req.Body = RequestBody;
+		req.Headers.Set("Content-Type", Request.m_contentType);
+		if (RequestMethodAcceptsData(Request.m_method)) {
+			req.Body = Request.m_body;
 		}
 
-		req.Url = GetBaseUrl() + RequestPath;
-		for (uint i = 0; i < RequestQuery.Length; i++) {
-			auto item = RequestQuery[i];
+		req.Url = GetBaseUrl() + Request.m_path;
+		for (uint i = 0; i < Request.m_query.Length; i++) {
+			auto item = Request.m_query[i];
 			if (i == 0) {
 				req.Url += "?";
 			} else {

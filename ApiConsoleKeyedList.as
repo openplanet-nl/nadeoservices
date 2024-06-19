@@ -5,6 +5,13 @@ namespace ApiConsole
 	{
 		string m_key;
 		string m_value;
+
+		KeyedListItem() {}
+		KeyedListItem(const string &in key, const string &in value)
+		{
+			m_key = key;
+			m_value = value;
+		}
 	}
 
 	class KeyedList
@@ -43,6 +50,37 @@ namespace ApiConsole
 				}
 				UI::EndChild();
 			}
+		}
+
+		void Clear()
+		{
+			m_items.RemoveRange(0, m_items.Length);
+		}
+
+		void FromJson(const Json::Value@ js)
+		{
+			Clear();
+
+			if (js is null) {
+				return;
+			}
+
+			auto keys = js.GetKeys();
+			for (uint j = 0; j < keys.Length; j++) {
+				string key = keys[j];
+				string value = js[key];
+				m_items.InsertLast(KeyedListItem(key, value));
+			}
+		}
+
+		Json::Value@ ToJson()
+		{
+			auto ret = Json::Object();
+			for (uint i = 0; i < m_items.Length; i++) {
+				auto item = m_items[i];
+				ret[item.m_key] = item.m_value;
+			}
+			return ret;
 		}
 	}
 }

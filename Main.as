@@ -1,14 +1,10 @@
-#if SIG_DEVELOPER
-UI::Font@ g_fontMono;
-#endif
-
 void Main()
 {
 #if SIG_DEVELOPER
 	NadeoServices::AddAudience("NadeoServices");
 	NadeoServices::AddAudience("NadeoLiveServices");
 
-	@g_fontMono = UI::LoadFont("DroidSansMono.ttf", 16);
+	ApiConsole::Initialize();
 #endif
 
 	auto app = cast<CGameManiaPlanet>(GetApp());
