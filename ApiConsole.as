@@ -154,7 +154,7 @@ namespace ApiConsole
 					name = route.m_path;
 				}
 
-				if (UI::MenuItem(name + "##route" + i)) {
+				if (UI::MenuItem("\\$f93" + Icons::FolderOpen + "\\$z " + name + "##route" + i)) {
 					Request = route;
 				}
 			}
@@ -174,7 +174,7 @@ namespace ApiConsole
 				}
 
 				if (UI::BeginMenu(name + "##route" + i)) {
-					if (UI::MenuItem("\\$f93" + Icons::FolderOpen + "\\$z Load route")) {
+					if (UI::MenuItem("\\$f93" + Icons::FolderOpen + "\\$z Load " + name)) {
 						Request = route;
 					}
 					UI::Separator();
