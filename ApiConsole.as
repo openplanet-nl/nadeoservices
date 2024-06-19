@@ -24,18 +24,12 @@ namespace ApiConsole
 	BaseUrl BaseUrlType = BaseUrl::Core;
 	Net::HttpMethod RequestMethod = Net::HttpMethod::Get;
 	string RequestPath = "/api/routes";
-	dictionary RequestQuery;
-	dictionary RequestHeaders;
+	KeyedList RequestQuery;
+	KeyedList RequestHeaders;
 	string RequestContentType = "application/json";
 	string RequestBody = "{}";
 
 	bool Waiting = false;
-
-	string AddQuery_Key = "";
-	string AddQuery_Value = "";
-
-	string AddHeader_Key = "";
-	string AddHeader_Value = "";
 
 	string Error = "";
 	int ResponseCode = 0;
@@ -172,72 +166,12 @@ namespace ApiConsole
 		UI::BeginTabBar("RequestTabs");
 
 		if (UI::BeginTabItem(Icons::Link + " Request query")) {
-			AddQuery_Key = UI::InputText("Key", AddQuery_Key);
-			AddQuery_Value = UI::InputText("Value", AddQuery_Value);
-			if (UI::ButtonColored(Icons::PlusCircle + " Add query parameter", 0.4f)) {
-				if (AddQuery_Key != "" && AddQuery_Value != "") {
-					RequestQuery.Set(AddQuery_Key, AddQuery_Value);
-					AddQuery_Key = "";
-					AddQuery_Value = "";
-				}
-			}
-			UI::SameLine();
-			if (UI::Button("Clear all query")) {
-				RequestQuery.DeleteAll();
-			}
-
-			UI::SeparatorTextOpenplanet("Query variables");
-			if (UI::BeginChild("Container")) {
-				auto keys = RequestQuery.GetKeys();
-				for (uint i = 0; i < keys.Length; i++) {
-					string key = keys[i];
-					string value;
-					RequestQuery.Get(key, value);
-					UI::PushID(key);
-					if (UI::ButtonColored(Icons::MinusCircle, 0)) {
-						RequestQuery.Delete(key);
-					}
-					UI::SameLine();
-					UI::Text("\\$f93" + key + "\\$z: " + value);
-					UI::PopID();
-				}
-				UI::EndChild();
-			}
+			RequestQuery.Render();
 			UI::EndTabItem();
 		}
 
 		if (UI::BeginTabItem(Icons::Kenney::List + " Request headers")) {
-			AddHeader_Key = UI::InputText("Key", AddHeader_Key);
-			AddHeader_Value = UI::InputText("Value", AddHeader_Value);
-			if (UI::ButtonColored(Icons::PlusCircle + " Add header", 0.4f)) {
-				if (AddHeader_Key != "" && AddHeader_Value != "") {
-					RequestHeaders.Set(AddHeader_Key, AddHeader_Value);
-					AddHeader_Key = "";
-					AddHeader_Value = "";
-				}
-			}
-			UI::SameLine();
-			if (UI::Button("Clear all headers")) {
-				RequestHeaders.DeleteAll();
-			}
-
-			UI::SeparatorTextOpenplanet("Request headers");
-			if (UI::BeginChild("Container")) {
-				auto keys = RequestHeaders.GetKeys();
-				for (uint i = 0; i < keys.Length; i++) {
-					string key = keys[i];
-					string value;
-					RequestHeaders.Get(key, value);
-					UI::PushID(key);
-					if (UI::ButtonColored(Icons::MinusCircle, 0)) {
-						RequestHeaders.Delete(key);
-					}
-					UI::SameLine();
-					UI::Text("\\$f93" + key + "\\$z: " + value);
-					UI::PopID();
-				}
-				UI::EndChild();
-			}
+			RequestHeaders.Render();
 			UI::EndTabItem();
 		}
 
@@ -329,12 +263,9 @@ namespace ApiConsole
 		auto req = NadeoServices::Request(GetAudience());
 		req.Method = RequestMethod;
 
-		auto requestHeaderKeys = RequestHeaders.GetKeys();
-		for (uint i = 0; i < requestHeaderKeys.Length; i++) {
-			string key = requestHeaderKeys[i];
-			string value;
-			RequestHeaders.Get(key, value);
-			req.Headers.Set(key, value);
+		for (uint i = 0; i < RequestHeaders.Length; i++) {
+			auto item = RequestHeaders[i];
+			req.Headers.Set(item.m_key, item.m_value);
 		}
 
 		req.Headers.Set("Content-Type", RequestContentType);
@@ -343,19 +274,15 @@ namespace ApiConsole
 		}
 
 		req.Url = GetBaseUrl() + RequestPath;
-		auto requestQueryKeys = RequestQuery.GetKeys();
-		for (uint i = 0; i < requestQueryKeys.Length; i++) {
-			string key = requestQueryKeys[i];
-			string value;
-			RequestQuery.Get(key, value);
+		for (uint i = 0; i < RequestQuery.Length; i++) {
+			auto item = RequestQuery[i];
 			if (i == 0) {
 				req.Url += "?";
 			} else {
 				req.Url += "&";
 			}
-			req.Url += key + "=" + Net::UrlEncode(value);
+			req.Url += item.m_key + "=" + Net::UrlEncode(item.m_value);
 		}
-		print(req.Url);
 
 		req.Start();
 
