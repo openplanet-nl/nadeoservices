@@ -18,6 +18,7 @@ namespace ApiConsole
 		KeyedList m_headers;
 		string m_contentType = "application/json";
 		string m_body = "{}";
+		KeyedList m_variables;
 
 		void Clear()
 		{
@@ -29,6 +30,17 @@ namespace ApiConsole
 			m_headers.Clear();
 			m_contentType = "application/json";
 			m_body = "{}";
+			m_variables.Clear();
+		}
+
+		string ReplaceVariables(const string &in str)
+		{
+			string ret = str;
+			for (uint i = 0; i < m_variables.Length; i++) {
+				auto item = m_variables[i];
+				ret = ret.Replace("{" + item.m_key + "}", item.m_value);
+			}
+			return ret;
 		}
 
 		void FromJson(const Json::Value@ js)
@@ -82,6 +94,8 @@ namespace ApiConsole
 					m_body = Json::Write(jsBody, true);
 				}
 			}
+
+			m_variables.FromJson(js["variables"]);
 		}
 
 		Json::Value@ ToJson()
@@ -95,6 +109,7 @@ namespace ApiConsole
 			ret["headers"] = m_headers.ToJson();
 			ret["content-type"] = m_contentType;
 			ret["body"] = m_body;
+			ret["variables"] = m_variables.ToJson();
 			return ret;
 		}
 	}

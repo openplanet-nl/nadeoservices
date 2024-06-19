@@ -75,6 +75,14 @@ namespace ApiConsole
 		SaveRequestDataList(RoutesSaved, IO::FromStorageFolder("SavedRoutes.json"));
 	}
 
+	string ColoredNumber(int n)
+	{
+		if (n == 0) {
+			return "";
+		}
+		return " \\$f93(" + n + ")\\$z";
+	}
+
 	void Render()
 	{
 		if (!Visible) {
@@ -128,6 +136,13 @@ namespace ApiConsole
 				UI::EndMenu();
 			}
 
+			if (UI::BeginMenu("Utilities")) {
+				if (UI::MenuItem("Copy my account ID")) {
+					IO::SetClipboard(NadeoServices::GetAccountID());
+				}
+				UI::EndMenu();
+			}
+
 			if (UI::BeginMenu("Help")) {
 				if (UI::MenuItem(Icons::QuestionCircle + " Web Services Documentation")) {
 					OpenBrowserURL("https://webservices.openplanet.dev/");
@@ -143,9 +158,9 @@ namespace ApiConsole
 		}
 	}
 
-	void RenderMenuRoutes(const string &in name, const array<RequestData@> &in routes)
+	void RenderMenuRoutes(const string &in collectionName, const array<RequestData@> &in routes)
 	{
-		if (UI::BeginMenu(name, routes.Length > 0)) {
+		if (UI::BeginMenu(collectionName, routes.Length > 0)) {
 			for (uint i = 0; i < routes.Length; i++) {
 				auto route = routes[i];
 
@@ -179,9 +194,9 @@ namespace ApiConsole
 					}
 					UI::Separator();
 					if (UI::MenuItem(Icons::FloppyO + " Overwrite with current")) {
-						string name = route.m_name;
+						string tempName = route.m_name;
 						route = Request;
-						route.m_name = name;
+						route.m_name = tempName;
 						WriteSavedRoutes();
 					}
 					if (UI::MenuItem(Icons::MinusCircle + " Delete route")) {
@@ -222,11 +237,11 @@ namespace ApiConsole
 		UI::TextDisabled(GetBaseUrl());
 		UI::SameLine();
 		UI::SetNextItemWidth(UI::GetContentRegionAvail().x - 60);
-		bool pressedEnter = false;
-		Request.m_path = UI::InputText("##PathInput", Request.m_path, pressedEnter, UI::InputTextFlags::EnterReturnsTrue);
+		bool pathModified = false;
+		Request.m_path = UI::InputText("##PathInput", Request.m_path, pathModified);
 		UI::PopFont();
 		UI::SameLine();
-		if (UI::ButtonColored(Icons::ArrowRight, 0.05f, 0.6f, 0.6f, vec2(UI::GetContentRegionAvail().x, 0)) || pressedEnter) {
+		if (UI::ButtonColored(Icons::ArrowRight, 0.05f, 0.6f, 0.6f, vec2(UI::GetContentRegionAvail().x, 0))) {
 			startnew(StartRequestAsync);
 		}
 		UI::EndDisabled();
@@ -236,12 +251,12 @@ namespace ApiConsole
 	{
 		UI::BeginTabBar("RequestTabs");
 
-		if (UI::BeginTabItem(Icons::Link + " Request query")) {
+		if (UI::BeginTabItem(Icons::Link + " Request query" + ColoredNumber(Request.m_query.Length) + "###Query")) {
 			Request.m_query.Render();
 			UI::EndTabItem();
 		}
 
-		if (UI::BeginTabItem(Icons::Kenney::List + " Request headers")) {
+		if (UI::BeginTabItem(Icons::Kenney::List + " Request headers" + ColoredNumber(Request.m_headers.Length) + "###Headers")) {
 			Request.m_headers.Render();
 			UI::EndTabItem();
 		}
@@ -257,6 +272,11 @@ namespace ApiConsole
 				UI::EndCombo();
 			}
 			Request.m_body = UI::InputTextMultiline("##RequestBody", Request.m_body, UI::GetContentRegionAvail());
+			UI::EndTabItem();
+		}
+
+		if (UI::BeginTabItem(Icons::Th + " Variables" + ColoredNumber(Request.m_variables.Length) + "###Variables")) {
+			Request.m_variables.Render();
 			UI::EndTabItem();
 		}
 
@@ -369,15 +389,15 @@ namespace ApiConsole
 
 		for (uint i = 0; i < Request.m_headers.Length; i++) {
 			auto item = Request.m_headers[i];
-			req.Headers.Set(item.m_key, item.m_value);
+			req.Headers.Set(item.m_key, Request.ReplaceVariables(item.m_value));
 		}
 
-		req.Headers.Set("Content-Type", Request.m_contentType);
+		req.Headers.Set("Content-Type", Request.ReplaceVariables(Request.m_contentType));
 		if (RequestMethodAcceptsData(Request.m_method)) {
-			req.Body = Request.m_body;
+			req.Body = Request.ReplaceVariables(Request.m_body);
 		}
 
-		req.Url = GetBaseUrl() + Request.m_path;
+		req.Url = GetBaseUrl() + Request.ReplaceVariables(Request.m_path);
 		for (uint i = 0; i < Request.m_query.Length; i++) {
 			auto item = Request.m_query[i];
 			if (i == 0) {
@@ -385,7 +405,7 @@ namespace ApiConsole
 			} else {
 				req.Url += "&";
 			}
-			req.Url += item.m_key + "=" + Net::UrlEncode(item.m_value);
+			req.Url += item.m_key + "=" + Net::UrlEncode(Request.ReplaceVariables(item.m_value));
 		}
 
 		req.Start();
