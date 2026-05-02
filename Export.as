@@ -75,7 +75,9 @@ namespace NadeoServices
 	// filled in. Throws an exception if the audience is not authenticated yet.
 	import Net::HttpRequest@ Delete(
 		const string &in audience,
-		const string &in url = ""
+		const string &in url = "",
+		const string &in body = "",
+		const string &in contentType = "application/json"
 	) from "NadeoServices";
 
 	// Creates a PATCH HTTP request with the correct authentication header for the audience already

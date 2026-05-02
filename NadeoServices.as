@@ -113,11 +113,15 @@ namespace NadeoServices
 
 	Net::HttpRequest@ Delete(
 		const string &in audience,
-		const string &in url = ""
+		const string &in url = "",
+		const string &in body = "",
+		const string &in contentType = "application/json"
 	) {
 		auto ret = Request(audience);
 		ret.Method = Net::HttpMethod::Delete;
 		ret.Url = url;
+		ret.Body = body;
+		ret.Headers["Content-Type"] = contentType;
 		return ret;
 	}
 
